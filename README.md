@@ -1,1 +1,1 @@
-# Reto-T-cnico-Sofka
+# Reto-Tecnico-Sofka

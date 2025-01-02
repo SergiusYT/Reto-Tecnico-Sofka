@@ -10,7 +10,9 @@ public class View extends JFrame{
     private static final long serialVersionUID = 1L;
 	private JPanel cardPanel;
     private CardLayout cardLayout;
+    private PrincipalView principalView;
     private ClientesView clientesView;
+    private EmpleadosView empleadosView;
 
     public View() {
 		//------------------- propiedades y caracteristica que contendra el JFrame -----------------------------------
@@ -25,7 +27,9 @@ public class View extends JFrame{
 
        //----------------------Inicializacion de objetos ------------------------------------------------------------
 
+       principalView = new PrincipalView();
        clientesView = new ClientesView();
+       empleadosView = new EmpleadosView();
 
 
 
@@ -37,16 +41,34 @@ public class View extends JFrame{
         cardPanel.setLayout(cardLayout);
 
 
+        cardPanel.add(principalView, "PrincipalView");
         cardPanel.add(clientesView, "ClientesView");
+        cardPanel.add(empleadosView, "EmpleadosView");
         add(cardPanel);
     }
 
+
+    public PrincipalView getPrincipalView() {
+        return principalView;
+    }
 
     public ClientesView getClientesView() {
         return clientesView;
     }
 
+    public EmpleadosView getEmpleadosView() {
+        return empleadosView;
+    }
+
+    public void setPrincipalView(){
+        cardLayout.show(cardPanel, "PrincipalView");
+    }
+
     public void setClientesView(){
         cardLayout.show(cardPanel, "ClientesView");
+    }
+
+    public void setEmpleadosView(){
+        cardLayout.show(cardPanel, "EmpleadosView");
     }
 }

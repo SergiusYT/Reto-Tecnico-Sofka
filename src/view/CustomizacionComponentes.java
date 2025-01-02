@@ -12,6 +12,8 @@ public abstract class CustomizacionComponentes extends JPanel {
     protected Color primaryColor = Color.decode("#7e4cea");
     protected Color secondaryColor = Color.decode("#80ff81");
 
+    protected JButton botonHome;
+
 
 
     // Método para crear banners estilizados
@@ -29,6 +31,10 @@ public abstract class CustomizacionComponentes extends JPanel {
         bannerLabel.setHorizontalAlignment(SwingConstants.CENTER);
     
         bannerPanel.add(bannerLabel, BorderLayout.CENTER);
+
+        // Botón con solo imagen (en el lado derecho)
+        JButton botonImagen = crearBotonHome("resources/icon/Principal.png");
+        bannerPanel.add(botonImagen, BorderLayout.EAST);        
         return bannerPanel;
     }
     
@@ -83,5 +89,30 @@ public abstract class CustomizacionComponentes extends JPanel {
             }
         });
         return textField;
+    }
+
+
+    // Método para crear un botón con solo imagen
+    protected JButton crearBotonHome(String rutaImagen) {
+        botonHome = new JButton();
+        botonHome.setFocusPainted(false); // Eliminar bordes al enfocar
+        botonHome.setBorderPainted(false); // Quitar el borde del botón
+        botonHome.setContentAreaFilled(false); // Hacer el fondo transparente
+
+    // Cargar y escalar la imagen
+    try {
+        ImageIcon icono = new ImageIcon(rutaImagen);
+        Image imagenEscalada = icono.getImage().getScaledInstance(32, 32, Image.SCALE_SMOOTH);
+        botonHome.setIcon(new ImageIcon(imagenEscalada));
+    } catch (Exception e) {
+        System.err.println("Error al cargar la imagen: " + rutaImagen);
+        e.printStackTrace();
+    }
+
+    return botonHome;
+}
+
+    protected  JButton getBotonHome() {
+        return botonHome;
     }
 }

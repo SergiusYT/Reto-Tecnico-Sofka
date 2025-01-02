@@ -1,27 +1,31 @@
 package view;
 
 import java.awt.*;
+import java.text.ParseException;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.text.MaskFormatter;
 
-public class ClientesView extends CustomizacionComponentes{
+
+public class EmpleadosView extends CustomizacionComponentes {
 
     private static final long serialVersionUID = 1L;
 
     // Componentes para el formulario
-    private JTextField  txtNombre, txtNIdentificacion, txtTelefono, txtCorreo, txtEstatura, txtEdad, txtNombreFamiliar, txtTelefonoFamiliar;
+    private JTextField txtNombre, txtCedula, txtTelefono, txtCorreo;
+    private JComboBox<String> cbRol;
+    private JFormattedTextField txtHorarioLaboral;
     private JButton btnAgregar, btnEditar, btnEliminar;
     private JLabel lblAdvertencia;
-    private JTable tablaClientes;
+    private JTable tablaEmpleados;
     private DefaultTableModel modeloTabla;
 
-    public ClientesView() {
+    public EmpleadosView() {
         setLayout(new BorderLayout());
         setBackground(primaryColor);
 
-
         // Banner superior
-        add(crearBanner("Gestión de Clientes"), BorderLayout.NORTH);
+        add(crearBanner("Gestión de Empleados"), BorderLayout.NORTH);
 
         // Panel dividido
         JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
@@ -35,111 +39,110 @@ public class ClientesView extends CustomizacionComponentes{
         add(splitPane, BorderLayout.CENTER);
     }
 
-
-
-    private  JPanel crearFormulario() {
+    private JPanel crearFormulario() {
         // Panel principal del formulario
         JPanel formularioCompletoPanel = new JPanel(new BorderLayout());
         formularioCompletoPanel.setBackground(secondaryColor);
-    
+
         // Panel para el mensaje de advertencia
         JPanel advertenciaPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         advertenciaPanel.setBackground(secondaryColor);
-    
+
         lblAdvertencia = new JLabel();
         lblAdvertencia.setForeground(Color.RED);
         advertenciaPanel.add(lblAdvertencia);
-    
+
         // Panel para los campos del formulario
-        JPanel formularioPanel = new JPanel(new GridLayout(8, 2, 10, 10));
+        JPanel formularioPanel = new JPanel(new GridLayout(6, 2, 10, 10));
         formularioPanel.setBackground(secondaryColor);
-        formularioPanel.setBorder(BorderFactory.createTitledBorder(null, "Formulario de Clientes",
+        formularioPanel.setBorder(BorderFactory.createTitledBorder(null, "Formulario de Empleados",
                 0, 0, labelFont, Color.BLACK));
-    
+
         txtNombre = crearTextField();
         txtNombre.setBackground(secondaryColor);
-        txtNIdentificacion = crearTextField();
-        txtNIdentificacion.setBackground(secondaryColor);
+        txtCedula = crearTextField();
+        txtCedula.setBackground(secondaryColor);
         txtTelefono = crearTextField();
         txtTelefono.setBackground(secondaryColor);
         txtCorreo = crearTextField();
         txtCorreo.setBackground(secondaryColor);
-        txtEstatura = crearTextField();
-        txtEstatura.setBackground(secondaryColor);
-        txtEdad = crearTextField();
-        txtEdad.setBackground(secondaryColor);
-        txtNombreFamiliar = crearTextField();
-        txtNombreFamiliar.setBackground(secondaryColor);
-        txtTelefonoFamiliar = crearTextField();
-        txtTelefonoFamiliar.setBackground(secondaryColor);
-    
+
+        cbRol = new JComboBox<>();
+        cbRol.setFont(textFieldFont);
+        cbRol.setBackground(Color.WHITE);
+
+        try {
+            MaskFormatter horarioFormatter = new MaskFormatter("##:## - ##:##");
+            horarioFormatter.setPlaceholderCharacter('_');
+            txtHorarioLaboral = new JFormattedTextField(horarioFormatter);
+            txtHorarioLaboral.setFont(textFieldFont);
+            txtHorarioLaboral.setBorder(BorderFactory.createMatteBorder(0, 0, 2, 0, primaryColor));
+            txtHorarioLaboral.setCaretColor(primaryColor);
+        } catch (ParseException e) {
+            txtHorarioLaboral = new JFormattedTextField();
+            e.printStackTrace();
+        }
+
         formularioPanel.add(crearLabel("Nombre:"));
         formularioPanel.add(txtNombre);
-        formularioPanel.add(crearLabel("N Identificación:"));
-        formularioPanel.add(txtNIdentificacion);
+        formularioPanel.add(crearLabel("Cédula:"));
+        formularioPanel.add(txtCedula);
         formularioPanel.add(crearLabel("Teléfono:"));
         formularioPanel.add(txtTelefono);
         formularioPanel.add(crearLabel("Correo:"));
         formularioPanel.add(txtCorreo);
-        formularioPanel.add(crearLabel("Estatura:"));
-        formularioPanel.add(txtEstatura);
-        formularioPanel.add(crearLabel("Edad:"));
-        formularioPanel.add(txtEdad);
-        formularioPanel.add(crearLabel("Nombre Familiar:"));
-        formularioPanel.add(txtNombreFamiliar);
-        formularioPanel.add(crearLabel("Teléfono Familiar:"));
-        formularioPanel.add(txtTelefonoFamiliar);
-    
+        formularioPanel.add(crearLabel("Rol:"));
+        formularioPanel.add(cbRol);
+        formularioPanel.add(crearLabel("Horario Laboral:"));
+        formularioPanel.add(txtHorarioLaboral);
+
         // Panel para los botones
         JPanel botonesPanel = new JPanel(new FlowLayout());
         botonesPanel.setBackground(primaryColor);
-    
+
         btnAgregar = crearBoton("Agregar");
         btnEditar = crearBoton("Editar");
         btnEliminar = crearBoton("Eliminar");
-    
+
         botonesPanel.add(btnAgregar);
         botonesPanel.add(btnEditar);
         botonesPanel.add(btnEliminar);
-    
+
         // Agregar paneles al panel principal del formulario
         formularioCompletoPanel.add(advertenciaPanel, BorderLayout.NORTH);
         formularioCompletoPanel.add(formularioPanel, BorderLayout.CENTER);
         formularioCompletoPanel.add(botonesPanel, BorderLayout.SOUTH);
-    
+
         return formularioCompletoPanel;
     }
 
     private JScrollPane crearTabla() {
-        String[] columnas = {"ID", "Nombre", "N Identificación", "Teléfono", "Correo", "Estatura", "Edad", "Nombre Familiar", "Teléfono Familiar", "Visitas"};
-    
+        String[] columnas = {"ID", "Nombre", "Cédula", "Teléfono", "Correo", "Rol", "Horario Laboral"};
+
         modeloTabla = new DefaultTableModel(columnas, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return false; // Todas las celdas son no editables
             }
         };
-    
-        tablaClientes = new JTable(modeloTabla);
-        tablaClientes.setFillsViewportHeight(true);
-        tablaClientes.setFont(textFieldFont);
-        tablaClientes.getTableHeader().setFont(labelFont);
-        tablaClientes.getTableHeader().setBackground(primaryColor);
-        tablaClientes.getTableHeader().setForeground(Color.WHITE);
-    
-        return new JScrollPane(tablaClientes);
+
+        tablaEmpleados = new JTable(modeloTabla);
+        tablaEmpleados.setFillsViewportHeight(true);
+        tablaEmpleados.setFont(textFieldFont);
+        tablaEmpleados.getTableHeader().setFont(labelFont);
+        tablaEmpleados.getTableHeader().setBackground(primaryColor);
+        tablaEmpleados.getTableHeader().setForeground(Color.WHITE);
+
+        return new JScrollPane(tablaEmpleados);
     }
-    
 
     // Getters para los controladores
-
-
     public JTextField getTxtNombre() {
         return txtNombre;
     }
 
-    public JTextField getTxtNIdentificacion() {
-        return txtNIdentificacion;
+    public JTextField getTxtCedula() {
+        return txtCedula;
     }
 
     public JTextField getTxtTelefono() {
@@ -150,20 +153,18 @@ public class ClientesView extends CustomizacionComponentes{
         return txtCorreo;
     }
 
-    public JTextField getTxtEstatura() {
-        return txtEstatura;
+    public JComboBox<String> getCbRol() {
+        return cbRol;
     }
 
-    public JTextField getTxtEdad() {
-        return txtEdad;
+    public void setCbRol(java.util.List<Object[]> cbRol) {
+        for (Object[] rol : cbRol) {
+            this.cbRol.addItem(rol[0].toString());
+        }
     }
 
-    public JTextField getTxtNombreFamiliar() {
-        return txtNombreFamiliar;
-    }
-
-    public JTextField getTxtTelefonoFamiliar() {
-        return txtTelefonoFamiliar;
+    public JFormattedTextField getTxtHorarioLaboral() {
+        return txtHorarioLaboral;
     }
 
     public JLabel getLblAdvertencia() {
@@ -182,8 +183,8 @@ public class ClientesView extends CustomizacionComponentes{
         return btnEliminar;
     }
 
-    public JTable getTablaClientes() {
-        return tablaClientes;
+    public JTable getTablaEmpleados() {
+        return tablaEmpleados;
     }
 
     public DefaultTableModel getModeloTabla() {

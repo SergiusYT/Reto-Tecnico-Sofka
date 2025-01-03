@@ -11,7 +11,7 @@ import model.persistence.EmpleadosDTO;
 
 public class EmpleadosDAO {
 
-        public void create(String nombre, String cedula, String telefono, String correo, int rolId, String horario) throws SQLException {
+    public void create(String nombre, String cedula, String telefono, String correo, int rolId, String horario) throws SQLException {
         EmpleadosDTO empleado = new EmpleadosDTO();
         empleado.setNombre(nombre);
         empleado.setCedula(cedula);
@@ -115,4 +115,45 @@ public class EmpleadosDAO {
         }
         return roles;
     }
+
+        // En la clase DAO
+    public List<Object[]> listarEmpleadosPorRol(int rol) throws SQLException {
+        String sql = "SELECT * FROM empleados WHERE rol_id = ?";
+        List<Object[]> empleados = new ArrayList<>();
+        try (Connection conn = ConexionBd.obtenerConexion();
+            PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, rol); // Filtrar por rol
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    empleados.add(new Object[]{
+                        rs.getInt("id"),
+                        rs.getString("nombre"),
+                        rs.getString("cedula"),
+                        rs.getString("telefono"),
+                        rs.getString("correo"),
+                        rs.getInt("rol_id"),
+                        rs.getString("horario_laboral")
+                    });
+                }
+            }
+        }
+        return empleados;
+    }
+
+
+    public int obtenerRolPorCedula(String cedula) throws SQLException {
+        String sql = "SELECT rol_id FROM empleados WHERE cedula = ?";
+        try (Connection conn = ConexionBd.obtenerConexion();
+            PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, cedula);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("rol_id");
+                }
+            }
+        }
+        return -1; // Rol no encontrado
+    }
+
+
 }

@@ -20,7 +20,6 @@ public class Controller implements ActionListener {
         modelo = new SalitreMagicoFacade();
         view = new View();
         agregarBotones();
-        agregarListenersClientes(); // Agregar los listeners
         ejecutarApp();
     }     
 
@@ -72,6 +71,18 @@ public class Controller implements ActionListener {
         view.getEmpleadosView().getBtnEditar().setActionCommand("EditarEmpleadosView");
         view.getEmpleadosView().getBtnEliminar().addActionListener(this);
         view.getEmpleadosView().getBtnEliminar().setActionCommand("EliminarEmpleadosView");
+
+
+        //----------------------------------- AtraccionesView --------------------------------------------
+        view.getAtraccionesView().getBotonHome().addActionListener(this);
+        view.getAtraccionesView().getBotonHome().setActionCommand("PrincipalView");
+        view.getAtraccionesView().getBtnAgregar().addActionListener(this);
+        view.getAtraccionesView().getBtnAgregar().setActionCommand("AgregarAtraccionesView");
+        view.getAtraccionesView().getBtnEditar().addActionListener(this);
+        view.getAtraccionesView().getBtnEditar().setActionCommand("EditarAtraccionesView");
+        view.getAtraccionesView().getBtnEliminar().addActionListener(this);
+        view.getAtraccionesView().getBtnEliminar().setActionCommand("EliminarAtraccionesView");
+
 
         
     }
@@ -321,12 +332,191 @@ public class Controller implements ActionListener {
     }
 
 
+  //--------------------------- METODOS PARA ATRACCIONESView --------------------------------
+
+  
+
+    private void agregarListenersAtracciones() {
+        // Listener para manejar selección de filas en la tabla de atracciones
+        view.getAtraccionesView().getTablaAtracciones().getSelectionModel().addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) {
+                manejarSeleccionFilaAtracciones();
+            }
+        });
+
+        // Listener para manejar clics en la tabla de atracciones (deselección)
+        view.getAtraccionesView().getTablaAtracciones().addMouseListener(new java.awt.event.MouseAdapter() {
+            private int ultimaFilaSeleccionada = -1;
+
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                int filaSeleccionada = view.getAtraccionesView().getTablaAtracciones().getSelectedRow();
+
+                if (filaSeleccionada == ultimaFilaSeleccionada) {
+                    view.getAtraccionesView().getTablaAtracciones().clearSelection();
+                    view.getAtraccionesView().getTxtNombre().setText("");
+                    view.getAtraccionesView().getTxtDescripcion().setText("");
+                    view.getAtraccionesView().getCbClasificacion().setSelectedIndex(0);
+                    view.getAtraccionesView().getTxtEstaturaMinima().setText("");
+                    view.getAtraccionesView().getTxtCondicionesUso().setText("");
+                    view.getAtraccionesView().getCbEstado().setSelectedIndex(0);
+                    view.getAtraccionesView().getTxtEmpleado().setText("");                ultimaFilaSeleccionada = -1;
+                } else {
+                    ultimaFilaSeleccionada = filaSeleccionada;
+                }
+            }
+        });
 
 
+            // Listener para manejar selección de filas en la tabla de empleados operadores
+        view.getAtraccionesView().getTablaEmpleados().getSelectionModel().addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) {
+                manejarSeleccionFilaEmpleadosOperadores();
+            }
+        });
+
+        // Listener para manejar clics en la tabla de empleados operadores (deselección)
+        view.getAtraccionesView().getTablaEmpleados().addMouseListener(new java.awt.event.MouseAdapter() {
+            private int ultimaFilaSeleccionadaEmpleados = -1;
+
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                int filaSeleccionada = view.getAtraccionesView().getTablaEmpleados().getSelectedRow();
+
+                if (filaSeleccionada == ultimaFilaSeleccionadaEmpleados) {
+                    view.getAtraccionesView().getTxtEmpleado().setText(""); 
+                    ultimaFilaSeleccionadaEmpleados = -1;
+                } else {
+                    ultimaFilaSeleccionadaEmpleados = filaSeleccionada;
+                }
+            }
+        });
 
 
+    }
+
+    private void cargarDatosInicialesAtracciones() {
+        cargarAtraccionesEnTabla();
+        cargarEmpleadosOperadoresEnTabla();
+        cargarClasificacionesEnComboBox();
+    }
+
+    private void cargarAtraccionesEnTabla() {
+        try {
+            List<?> listaAtracciones = modelo.getAtracciones().listarAtracciones();
+            DefaultTableModel modeloTabla = view.getAtraccionesView().getModeloTablaAtracciones();
+            modeloTabla.setRowCount(0);
+
+            for (Object obj : listaAtracciones) {
+                Object[] datos = (Object[]) obj;
+                modeloTabla.addRow(datos);
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(view, "Error al cargar atracciones: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void cargarEmpleadosOperadoresEnTabla() {
+        try {
+            int rolOperador = 4; // Rol operador
+            List<Object[]> listaEmpleados = modelo.getEmpleados().listarEmpleadosPorRol(rolOperador); // Obtener empleados con rol 3
+            DefaultTableModel modeloTabla = view.getAtraccionesView().getModeloTablaEmpleados();
+            modeloTabla.setRowCount(0); // Limpiar la tabla
+    
+            for (Object[] datos : listaEmpleados) {
+                modeloTabla.addRow(datos); // Añadir filas directamente
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(view, "Error al cargar los datos: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+       }
 
 
+    private void cargarClasificacionesEnComboBox() {
+        try {
+            List<String> clasificaciones = modelo.getAtracciones().obtenerClasificaciones();
+            JComboBox<String> cbClasificacion = view.getAtraccionesView().getCbClasificacion();
+            cbClasificacion.removeAllItems();
+            for (String clasificacion : clasificaciones) {
+                cbClasificacion.addItem(clasificacion);
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(view, "Error al cargar clasificaciones: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void manejarSeleccionFilaAtracciones() {
+        int filaSeleccionada = view.getAtraccionesView().getTablaAtracciones().getSelectedRow();
+
+        if (filaSeleccionada >= 0) {
+            DefaultTableModel modeloTabla = view.getAtraccionesView().getModeloTablaAtracciones();
+            String nombre = modeloTabla.getValueAt(filaSeleccionada, 1).toString();
+            String descripcion = modeloTabla.getValueAt(filaSeleccionada, 2).toString();
+            String clasificacion = modeloTabla.getValueAt(filaSeleccionada, 3).toString();
+            String estaturaMinima = modeloTabla.getValueAt(filaSeleccionada, 4).toString();
+            String condicionesUso = modeloTabla.getValueAt(filaSeleccionada, 5).toString();
+            String estado = modeloTabla.getValueAt(filaSeleccionada, 6).toString();
+            String empleado = modeloTabla.getValueAt(filaSeleccionada, 8).toString();
+
+            // Rellenar formulario
+            view.getAtraccionesView().getTxtNombre().setText(nombre);
+            view.getAtraccionesView().getTxtDescripcion().setText(descripcion);
+            view.getAtraccionesView().getCbClasificacion().setSelectedItem(clasificacion);
+            view.getAtraccionesView().getTxtEstaturaMinima().setText(estaturaMinima);
+            view.getAtraccionesView().getTxtCondicionesUso().setText(condicionesUso);
+            view.getAtraccionesView().getCbEstado().setSelectedItem(estado);
+            view.getAtraccionesView().getTxtEmpleado().setText(empleado);
+        } else {
+            view.getAtraccionesView().getTxtNombre().setText("");
+            view.getAtraccionesView().getTxtDescripcion().setText("");
+            view.getAtraccionesView().getCbClasificacion().setSelectedIndex(0);
+            view.getAtraccionesView().getTxtEstaturaMinima().setText("");
+            view.getAtraccionesView().getTxtCondicionesUso().setText("");
+            view.getAtraccionesView().getCbEstado().setSelectedIndex(0);
+            view.getAtraccionesView().getTxtEmpleado().setText("");    
+        }
+    }
+
+    private void manejarSeleccionFilaEmpleadosOperadores() {
+        int filaSeleccionada = view.getAtraccionesView().getTablaEmpleados().getSelectedRow();
+    
+        if (filaSeleccionada >= 0) {
+            DefaultTableModel modeloTabla = view.getAtraccionesView().getModeloTablaEmpleados();
+            String idEmpleado = modeloTabla.getValueAt(filaSeleccionada, 0).toString();
+    
+            // Rellenar formulario (o campos asociados)
+            view.getAtraccionesView().getTxtEmpleado().setText(idEmpleado); 
+        } else {
+            view.getAtraccionesView().getTxtEmpleado().setText(""); // O el campo correspondiente para mostrar datos de empleados
+        }
+    }
+    
+    private void configurarVistaAdministrador() {
+        view.getAtraccionesView().getBtnAgregar().setEnabled(true);
+        view.getAtraccionesView().getBtnEliminar().setEnabled(true);
+        view.getAtraccionesView().getTablaEmpleados().setVisible(true);
+        view.getAtraccionesView().getTxtNombre().setEnabled(true);
+        view.getAtraccionesView().getTxtDescripcion().setEnabled(true);
+        view.getAtraccionesView().getTxtEstaturaMinima().setEnabled(true);
+        view.getAtraccionesView().getTxtCondicionesUso().setEnabled(true);
+        view.getAtraccionesView().getCbClasificacion().setEnabled(true);
+        view.getAtraccionesView().getTxtEmpleado().setEnabled(false);
+        view.getAtraccionesView().getCbEstado().setEnabled(false);
+    }
+    
+    private void configurarVistaMantenimiento() {
+        view.getAtraccionesView().getBtnAgregar().setEnabled(false);
+        view.getAtraccionesView().getBtnEliminar().setEnabled(false);
+        view.getAtraccionesView().getTablaEmpleados().setVisible(false);
+        view.getAtraccionesView().getTxtNombre().setEnabled(false);
+        view.getAtraccionesView().getTxtDescripcion().setEnabled(false);
+        view.getAtraccionesView().getTxtEstaturaMinima().setEnabled(false);
+        view.getAtraccionesView().getTxtCondicionesUso().setEnabled(false);
+        view.getAtraccionesView().getCbClasificacion().setEnabled(false);
+        view.getAtraccionesView().getCbEstado().setEnabled(true);
+        view.getAtraccionesView().getTxtEmpleado().setEnabled(false);
+    }
+    
     
     
 
@@ -344,6 +534,7 @@ public class Controller implements ActionListener {
           case "ClientesView":
             view.setClientesView();
             cargarClientesEnTabla();
+            agregarListenersClientes(); 
           break;  
 
           case "EmpleadosView":
@@ -351,7 +542,38 @@ public class Controller implements ActionListener {
             cargarEmpleadosEnTabla();
             cargarRolesEnComboBox();
             agregarListenersEmpleados();
-          break; 
+          break;
+          
+          case "AtraccionesView":
+
+            String cedulaEmpleado = JOptionPane.showInputDialog("Ingrese su cédula:");
+            if (cedulaEmpleado != null) {
+                try {
+                    int rol = modelo.getEmpleados().obtenerRolPorCedula(cedulaEmpleado);
+                    if (rol == 1) { // Administrador
+                        configurarVistaAdministrador();
+                        view.setAtraccionesView();
+                        agregarListenersAtracciones();
+                        cargarDatosInicialesAtracciones();
+                    } else if (rol == 5) { // Mantenimiento
+                        configurarVistaMantenimiento();
+                        view.setAtraccionesView();
+                        agregarListenersAtracciones();
+                        cargarDatosInicialesAtracciones();
+                    } else {
+                        JOptionPane.showMessageDialog(view, "Acceso denegado.", "Error", JOptionPane.ERROR_MESSAGE);
+                    }
+                } catch (SQLException ex) {
+                    JOptionPane.showMessageDialog(view, "Error al validar el rol: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+                              
+          break;
+
+          case "TicketsView":
+            view.setTiquetesView();
+            modelo.getAtracciones().verificarCambiosEstado(); // Mostrar notificaciones unicamente si hay cambios
+          break;
 
           case "AgregarClientesView":
             try {
@@ -748,6 +970,180 @@ public class Controller implements ActionListener {
            } catch (SQLException ex) {
                  JOptionPane.showMessageDialog(view, "Error al eliminar el empleado: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
            }
+          break;
+
+          case "AgregarAtraccionesView":
+
+          try {
+            // Obtener datos del formulario
+            String nombre = view.getAtraccionesView().getTxtNombre().getText().trim();
+            String descripcion = view.getAtraccionesView().getTxtDescripcion().getText().trim();
+            int clasificacionId = view.getAtraccionesView().getCbClasificacion().getSelectedIndex() + 1;
+            String estaturaText = view.getAtraccionesView().getTxtEstaturaMinima().getText().trim();
+            String condicionesUso = view.getAtraccionesView().getTxtCondicionesUso().getText().trim();
+            String estado = view.getAtraccionesView().getCbEstado().getSelectedItem().toString();
+            String empleadoText = view.getAtraccionesView().getTxtEmpleado().getText().trim();
+    
+            // Validaciones básicas
+            if (nombre.isEmpty() || descripcion.isEmpty() || condicionesUso.isEmpty()) {
+                throw new IllegalArgumentException("Por favor, complete todos los campos obligatorios.");
+            }
+
+                    // Validar estatura mínima
+        Double estaturaMinima;
+        try {
+            estaturaMinima = Double.parseDouble(estaturaText);
+            if (estaturaMinima < 0.5 || estaturaMinima > 2.5) { // Valores lógicos de estatura en metros
+                throw new IllegalArgumentException("La estatura mínima debe estar entre 0.5 m y 2.5 m.");
+            }
+        } catch (NumberFormatException ex) {
+            throw new IllegalArgumentException("Por favor, ingrese una estatura válida.");
+        }
+
+        // Validar empleado ID
+        int empleadoId;
+        try {
+            empleadoId = Integer.parseInt(empleadoText);
+            if (empleadoId <= 0) {
+                throw new IllegalArgumentException("El ID del empleado debe ser un número positivo.");
+            }
+        } catch (NumberFormatException ex) {
+            throw new IllegalArgumentException("Por favor, seleccione un empleado de la tabla de empleados.");
+        }
+    
+            // Agregar atracción
+            modelo.getAtracciones().agregarAtraccion(nombre, descripcion, clasificacionId, estaturaMinima, condicionesUso, estado, empleadoId);
+            // Actualizar la tabla
+            cargarAtraccionesEnTabla();
+    
+            // Limpiar formulario
+            view.getAtraccionesView().getTxtNombre().setText("");
+            view.getAtraccionesView().getTxtDescripcion().setText("");
+            view.getAtraccionesView().getCbClasificacion().setSelectedIndex(0);
+            view.getAtraccionesView().getTxtEstaturaMinima().setText("");
+            view.getAtraccionesView().getTxtCondicionesUso().setText("");
+            view.getAtraccionesView().getCbEstado().setSelectedIndex(0);
+            view.getAtraccionesView().getTxtEmpleado().setText("");      
+            // Mensaje de éxito
+            JOptionPane.showMessageDialog(view, "Atracción agregada exitosamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+
+        // Mensaje de éxito
+        JOptionPane.showMessageDialog(view, "Atracción agregada exitosamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+        } catch (IllegalArgumentException ex) {
+            JOptionPane.showMessageDialog(view, ex.getMessage(), "Error de validación", JOptionPane.WARNING_MESSAGE);
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(view, "Error al agregar la atracción: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+
+          break;
+          case "EditarAtraccionesView":
+            try {
+                // Verificar selección en la tabla
+                int filaSeleccionada = view.getAtraccionesView().getTablaAtracciones().getSelectedRow();
+                if (filaSeleccionada < 0) {
+                    JOptionPane.showMessageDialog(view, "Por favor, seleccione una atracción para editar.", "Advertencia", JOptionPane.WARNING_MESSAGE);
+                    break;
+                }
+        
+                // Obtener ID y datos actualizados
+                int id = Integer.parseInt(view.getAtraccionesView().getModeloTablaAtracciones().getValueAt(filaSeleccionada, 0).toString());
+                String nombre = view.getAtraccionesView().getTxtNombre().getText().trim();
+                String descripcion = view.getAtraccionesView().getTxtDescripcion().getText().trim();
+                int clasificacionId = view.getAtraccionesView().getCbClasificacion().getSelectedIndex() + 1;
+                String estaturaText = view.getAtraccionesView().getTxtEstaturaMinima().getText().trim();
+                String condicionesUso = view.getAtraccionesView().getTxtCondicionesUso().getText().trim();
+                String estado = view.getAtraccionesView().getCbEstado().getSelectedItem().toString();
+                String empleadoText = view.getAtraccionesView().getTxtEmpleado().getText().trim();
+        
+            // Validaciones básicas
+            if (nombre.isEmpty() || descripcion.isEmpty() || condicionesUso.isEmpty()) {
+                throw new IllegalArgumentException("Por favor, complete todos los campos obligatorios.");
+            }
+
+                    // Validar estatura mínima
+            Double estaturaMinima;
+            try {
+                estaturaMinima = Double.parseDouble(estaturaText);
+                if (estaturaMinima < 0.5 || estaturaMinima > 2.5) { // Valores lógicos de estatura en metros
+                    throw new IllegalArgumentException("La estatura mínima debe estar entre 0.5 m y 2.5 m.");
+                }
+            } catch (NumberFormatException ex) {
+                throw new IllegalArgumentException("Por favor, ingrese una estatura válida.");
+            }
+
+                    // Validar empleado ID
+            int empleadoId;
+            try {
+                empleadoId = Integer.parseInt(empleadoText);
+                if (empleadoId <= 0) {
+                    throw new IllegalArgumentException("El ID del empleado debe ser un número positivo.");
+                }
+            } catch (NumberFormatException ex) {
+                throw new IllegalArgumentException("Por favor, seleccione un empleado de la tabla de empleados.");
+            }
+    
+            // Actualizar atracción
+            modelo.getAtracciones().actualizarAtraccion(id, nombre, descripcion, clasificacionId, estaturaMinima, condicionesUso, estado, empleadoId);
+    
+            // Actualizar tabla
+            cargarAtraccionesEnTabla();
+
+            // Activar bandera de notificación
+            modelo.getAtracciones().activarNotificacionCambioEstado();
+    
+            // Limpiar formulario
+            view.getAtraccionesView().getTxtNombre().setText("");
+            view.getAtraccionesView().getTxtDescripcion().setText("");
+            view.getAtraccionesView().getCbClasificacion().setSelectedIndex(0);
+            view.getAtraccionesView().getTxtEstaturaMinima().setText("");
+            view.getAtraccionesView().getTxtCondicionesUso().setText("");
+            view.getAtraccionesView().getCbEstado().setSelectedIndex(0);
+            view.getAtraccionesView().getTxtEmpleado().setText("");   
+
+            // Mensaje de éxito
+            JOptionPane.showMessageDialog(view, "Atracción actualizada exitosamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+        } catch (IllegalArgumentException ex) {
+            JOptionPane.showMessageDialog(view, ex.getMessage(), "Error de validación", JOptionPane.WARNING_MESSAGE);
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(view, "Error al editar la atracción: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+
+          break;
+          case "EliminarAtraccionesView":
+
+          try {
+            // Verificar selección en la tabla
+            int filaSeleccionada = view.getAtraccionesView().getTablaAtracciones().getSelectedRow();
+            if (filaSeleccionada < 0) {
+                JOptionPane.showMessageDialog(view, "Por favor, seleccione una atracción para eliminar.", "Advertencia", JOptionPane.WARNING_MESSAGE);
+                break;
+            }
+    
+            // Confirmar eliminación
+            int confirmacion = JOptionPane.showConfirmDialog(
+                view,
+                "¿Está seguro de que desea eliminar esta atracción?",
+                "Confirmación",
+                JOptionPane.YES_NO_OPTION
+            );
+    
+            if (confirmacion == JOptionPane.YES_OPTION) {
+                // Obtener ID de la atracción
+                int id = Integer.parseInt(view.getAtraccionesView().getModeloTablaAtracciones().getValueAt(filaSeleccionada, 0).toString());
+    
+                // Eliminar atracción
+                modelo.getAtracciones().eliminarAtraccion(id);
+    
+                // Actualizar tabla
+                cargarAtraccionesEnTabla();
+    
+                // Mensaje de éxito
+                JOptionPane.showMessageDialog(view, "Atracción eliminada exitosamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+            }
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(view, "Error al eliminar la atracción: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+          
           break;
 
 

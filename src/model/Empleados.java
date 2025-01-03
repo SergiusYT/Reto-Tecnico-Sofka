@@ -34,4 +34,12 @@ public class Empleados {
     public List<String> obtenerRoles() throws SQLException {
         return empleadoDAO.getRoles();
     }
+
+    public List<Object[]> listarEmpleadosPorRol(int rol) throws SQLException {
+        return empleadoDAO.listarEmpleadosPorRol(rol);
+    }
+
+    public int obtenerRolPorCedula(String cedula) throws SQLException {
+        return empleadoDAO.obtenerRolPorCedula(cedula);
+    }
 }

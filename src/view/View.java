@@ -13,6 +13,8 @@ public class View extends JFrame{
     private PrincipalView principalView;
     private ClientesView clientesView;
     private EmpleadosView empleadosView;
+    private AtraccionesView atraccionesView;
+    private TiquetesView tiquetesView;
 
     public View() {
 		//------------------- propiedades y caracteristica que contendra el JFrame -----------------------------------
@@ -30,6 +32,8 @@ public class View extends JFrame{
        principalView = new PrincipalView();
        clientesView = new ClientesView();
        empleadosView = new EmpleadosView();
+       atraccionesView = new AtraccionesView();
+       tiquetesView = new TiquetesView();
 
 
 
@@ -44,6 +48,8 @@ public class View extends JFrame{
         cardPanel.add(principalView, "PrincipalView");
         cardPanel.add(clientesView, "ClientesView");
         cardPanel.add(empleadosView, "EmpleadosView");
+        cardPanel.add(atraccionesView, "AtraccionesView");
+        cardPanel.add(tiquetesView, "TiquetesView");
         add(cardPanel);
     }
 
@@ -60,6 +66,14 @@ public class View extends JFrame{
         return empleadosView;
     }
 
+    public AtraccionesView getAtraccionesView() {
+        return atraccionesView;
+    }
+
+    public TiquetesView getTiquetesView() {
+        return tiquetesView;
+    }
+
     public void setPrincipalView(){
         cardLayout.show(cardPanel, "PrincipalView");
     }
@@ -70,5 +84,13 @@ public class View extends JFrame{
 
     public void setEmpleadosView(){
         cardLayout.show(cardPanel, "EmpleadosView");
+    }
+
+    public void setAtraccionesView(){
+        cardLayout.show(cardPanel, "AtraccionesView");
+    }   
+
+    public void setTiquetesView(){
+        cardLayout.show(cardPanel, "TiquetesView");
     }
 }

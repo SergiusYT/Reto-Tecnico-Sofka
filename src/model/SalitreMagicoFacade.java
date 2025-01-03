@@ -5,10 +5,12 @@ public class SalitreMagicoFacade {
 
     private Clientes clientes;
     private Empleados empleados;
+    private Atracciones atracciones;
 
     public SalitreMagicoFacade() {
         clientes = new Clientes();
         empleados = new Empleados();
+        atracciones = new Atracciones();
     }
 
 
@@ -19,4 +21,9 @@ public class SalitreMagicoFacade {
     public Empleados getEmpleados() {
         return empleados;
     }
+
+    public Atracciones getAtracciones() {
+        return atracciones;
+    }
+
 }

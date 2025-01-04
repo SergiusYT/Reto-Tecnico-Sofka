@@ -8,6 +8,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.List;
+import java.util.Map;
 import javax.swing.JComboBox;
 import javax.swing.JFormattedTextField;
 import javax.swing.JOptionPane;
@@ -101,6 +102,10 @@ public class Controller implements ActionListener {
         view.getTiquetesView().getBtnEliminar().setActionCommand("EliminarTiquetesView");
         view.getTiquetesView().getBtnIngreso().addActionListener(this);
         view.getTiquetesView().getBtnIngreso().setActionCommand("IngresoTiquetesView");
+
+        //----------------------------------- ReportesView --------------------------------------------
+        view.getReportesView().getBotonHome().addActionListener(this);
+        view.getReportesView().getBotonHome().setActionCommand("PrincipalView");
     }
 
 
@@ -719,6 +724,23 @@ public class Controller implements ActionListener {
             view.getTiquetesView().getBtnIngreso().setEnabled(false);
         }
     }
+
+    //--------------------------------REPORTESVIEW--------------------------------
+
+    private void cargarDatosReportes() {
+    try {
+        Map<String, Integer> visitasAtracciones = modelo.getTickets().obtenerVisitasAtracciones();
+        Map<String, Integer> clientesFrecuentes = modelo.getClientes().obtenerClientesFrecuentes();
+        view.getReportesView().actualizarTablaAtracciones(visitasAtracciones);
+        view.getReportesView().actualizarGraficoAtracciones(visitasAtracciones);
+
+        view.getReportesView().actualizarTablaClientes(clientesFrecuentes);
+        view.getReportesView().actualizarGraficoClientes(clientesFrecuentes);
+
+    } catch (SQLException ex) {
+        JOptionPane.showMessageDialog(view, "Error al cargar los datos de reportes: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+    }
+}
     
 
 
@@ -838,6 +860,11 @@ public class Controller implements ActionListener {
 
           case "ReportesView":
             view.setReportesView();
+            cargarDatosReportes();
+          break;
+
+          case "Salir":
+            System.exit(0);
           break;
 
           case "AgregarClientesView":

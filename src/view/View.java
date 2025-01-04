@@ -77,6 +77,10 @@ public class View extends JFrame{
         return tiquetesView;
     }
 
+    public ReportesView getReportesView() {
+        return reportesView;
+    }
+
     public void setPrincipalView(){
         cardLayout.show(cardPanel, "PrincipalView");
     }

@@ -5,7 +5,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import model.persistence.*;
 
 public class ClientesDAO {
@@ -146,6 +148,31 @@ public class ClientesDAO {
             }
         }
     }
-    
-    
+
+
+        // Método para clasificar clientes frecuentes por número de visitas
+    public Map<String, Integer> obtenerClientesFrecuentes() throws SQLException {
+        Map<String, Integer> clientesFrecuentes = new HashMap<>();
+        String sql = "SELECT " +
+                     "    CASE " +
+                     "        WHEN visitas >= 3 THEN '3+ visitas' " +
+                     "        WHEN visitas BETWEEN 1 AND 2 THEN '1-2 visitas' " +
+                     "        ELSE '0 visitas' " +
+                     "    END AS categoria, " +
+                     "    COUNT(*) AS total_clientes " +
+                     "FROM clientes " +
+                     "GROUP BY categoria";
+
+        try (Connection conn = ConexionBd.obtenerConexion();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                clientesFrecuentes.put(rs.getString("categoria"), rs.getInt("total_clientes"));
+            }
+        }
+        return clientesFrecuentes;
+    }
 }
+    
+    
+

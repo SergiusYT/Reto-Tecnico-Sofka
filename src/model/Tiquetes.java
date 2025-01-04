@@ -2,6 +2,7 @@ package model;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Map;
 
 public class Tiquetes {
 
@@ -41,6 +42,14 @@ public class Tiquetes {
 
     public void instarDatosIngresoAtracciones(int tiqueteId, int atraccionId) throws SQLException {
         tiquetesDAO.instarDatosIngresoAtracciones(tiqueteId, atraccionId);
+    }
+
+    public List<Object[]> obtenerTablaIntermedia() throws SQLException {
+        return tiquetesDAO.obtenerTablaIntermedia();
+    }
+
+    public Map<String, Integer> obtenerVisitasAtracciones() throws SQLException {
+        return tiquetesDAO.obtenerVisitasAtracciones();
     }
     
 }

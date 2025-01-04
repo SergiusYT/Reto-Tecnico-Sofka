@@ -5,7 +5,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import model.persistence.ConexionBd;
 import model.persistence.TiquetesDTO;
 
@@ -165,5 +167,24 @@ public class TiquetesDAO {
             }
             return tiquetes;
         }
+
+        public Map<String, Integer> obtenerVisitasAtracciones() throws SQLException {
+        Map<String, Integer> visitas = new HashMap<>();
+        String sql = "SELECT a.nombre, COUNT(ta.atraccion_id) AS total_visitas " +
+                     "FROM atracciones a " +
+                     "LEFT JOIN tiquetes_atracciones ta ON a.id = ta.atraccion_id " +
+                     "GROUP BY a.nombre " +
+                     "ORDER BY total_visitas DESC";
+
+        try (Connection conn = ConexionBd.obtenerConexion();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                visitas.put(rs.getString("nombre"), rs.getInt("total_visitas"));
+            }
+        }
+        return visitas;
+    }
+
 }
 

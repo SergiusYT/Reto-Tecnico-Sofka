@@ -134,4 +134,18 @@ public class ClientesDAO {
             ps.executeUpdate();
         }
     }
+
+    public void incrementarVisitas(int clienteId) throws SQLException {
+        String sql = "UPDATE clientes SET visitas = visitas + 1 WHERE id = ?";
+        try (Connection conn = ConexionBd.obtenerConexion();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, clienteId);
+            int filasActualizadas = ps.executeUpdate();
+            if (filasActualizadas == 0) {
+                throw new SQLException("No se encontró un cliente con ID " + clienteId);
+            }
+        }
+    }
+    
+    
 }

@@ -36,6 +36,10 @@ public class Clientes {
     public void eliminarCliente(int id) throws SQLException {
         clienteDAO.delete(id);
     }
+
+    public void incrementarVisitas(int clienteId) throws SQLException {
+        clienteDAO.incrementarVisitas(clienteId);
+    }
     
 }
 

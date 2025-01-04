@@ -99,7 +99,7 @@ public class AtraccionesView extends CustomizacionComponentes {
     }
 
     private JScrollPane crearTablaAtracciones() {
-        String[] columnas = {"ID", "Nombre", "Descripción", "Clasificación", "Estatura Mínima", "Condiciones", "Estado", "Contador Tiquetes", "Empleado"};
+        String[] columnas = {"ID", "Nombre", "Descripción", "Clasificación", "Estatura Mínima", "Condiciones", "Estado",  "Empleado"};
         modeloTablaAtracciones = new DefaultTableModel(columnas, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {

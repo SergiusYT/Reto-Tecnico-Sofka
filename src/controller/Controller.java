@@ -1,13 +1,18 @@
 package controller;
 
+import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.sql.SQLException;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import javax.swing.JComboBox;
 import javax.swing.JFormattedTextField;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
+import model.Clientes;
 import model.SalitreMagicoFacade;
 import view.View;
 
@@ -43,6 +48,8 @@ public class Controller implements ActionListener {
         view.getPrincipalView().getBotonAtracciones().setActionCommand("AtraccionesView");
         view.getPrincipalView().getBotonTickets().addActionListener(this);
         view.getPrincipalView().getBotonTickets().setActionCommand("TicketsView");
+        view.getPrincipalView().getBotonReportes().addActionListener(this);
+        view.getPrincipalView().getBotonReportes().setActionCommand("ReportesView");
         view.getPrincipalView().getBotonSalir().addActionListener(this);        
         view.getPrincipalView().getBotonSalir().setActionCommand("Salir");
         // Asegúrate de manejar el evento de home en PrincipalView
@@ -83,8 +90,17 @@ public class Controller implements ActionListener {
         view.getAtraccionesView().getBtnEliminar().addActionListener(this);
         view.getAtraccionesView().getBtnEliminar().setActionCommand("EliminarAtraccionesView");
 
-
-        
+        //----------------------------------- TiquetesView --------------------------------------------
+        view.getTiquetesView().getBotonHome().addActionListener(this);
+        view.getTiquetesView().getBotonHome().setActionCommand("PrincipalView");
+        view.getTiquetesView().getBtnAgregar().addActionListener(this);
+        view.getTiquetesView().getBtnAgregar().setActionCommand("AgregarTiquetesView");
+        view.getTiquetesView().getBtnEditar().addActionListener(this);
+        view.getTiquetesView().getBtnEditar().setActionCommand("EditarTiquetesView");
+        view.getTiquetesView().getBtnEliminar().addActionListener(this);
+        view.getTiquetesView().getBtnEliminar().setActionCommand("EliminarTiquetesView");
+        view.getTiquetesView().getBtnIngreso().addActionListener(this);
+        view.getTiquetesView().getBtnIngreso().setActionCommand("IngresoTiquetesView");
     }
 
 
@@ -456,7 +472,7 @@ public class Controller implements ActionListener {
             String estaturaMinima = modeloTabla.getValueAt(filaSeleccionada, 4).toString();
             String condicionesUso = modeloTabla.getValueAt(filaSeleccionada, 5).toString();
             String estado = modeloTabla.getValueAt(filaSeleccionada, 6).toString();
-            String empleado = modeloTabla.getValueAt(filaSeleccionada, 8).toString();
+            String empleado = modeloTabla.getValueAt(filaSeleccionada, 7).toString();
 
             // Rellenar formulario
             view.getAtraccionesView().getTxtNombre().setText(nombre);
@@ -518,6 +534,191 @@ public class Controller implements ActionListener {
     }
     
     
+//----------------------------------TiquetesView---------------------------------------------
+
+    private void agregarListenersTiquetesView() {
+
+        // Listener para selección en la tabla de tiquetes
+        view.getTiquetesView().getTablaTiquetes().getSelectionModel().addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) {
+                manejarSeleccionFilaTiquetes();
+            }
+        });
+
+        view.getTiquetesView().getTablaTiquetes().addMouseListener(new java.awt.event.MouseAdapter() {
+            private int ultimaFilaSeleccionadaTiquetes = -1;
+
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                int filaSeleccionada = view.getTiquetesView().getTablaTiquetes().getSelectedRow();
+                if (filaSeleccionada == ultimaFilaSeleccionadaTiquetes) {
+                    view.getTiquetesView().getTablaTiquetes().clearSelection();
+                    view.getTiquetesView().getTxtClienteID().setText("");
+                    view.getTiquetesView().getTxtEstacionID().setText("");
+                    view.getTiquetesView().getTxtFecha().setText(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+                    view.getTiquetesView().getCbTipoTiqueteID().setSelectedIndex(0);   
+                    ultimaFilaSeleccionadaTiquetes = -1;
+                } else {
+                    ultimaFilaSeleccionadaTiquetes = filaSeleccionada;
+                }
+            }
+        });
+
+
+        // Listener para selección en la tabla de clientes
+        view.getTiquetesView().getTablaClientes().getSelectionModel().addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) {
+                manejarSeleccionFilaClientesTiquetes();
+            }
+        });
+
+        view.getTiquetesView().getTablaClientes().addMouseListener(new java.awt.event.MouseAdapter() {
+            private int ultimaFilaSeleccionadaClientes = -1;
+
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                int filaSeleccionada = view.getTiquetesView().getTablaClientes().getSelectedRow();
+                if (filaSeleccionada == ultimaFilaSeleccionadaClientes) {
+                    view.getTiquetesView().getTablaClientes().clearSelection();
+                    view.getTiquetesView().getTxtClienteID().setText("");
+                    ultimaFilaSeleccionadaClientes = -1;
+                } else {
+                    ultimaFilaSeleccionadaClientes = filaSeleccionada;
+                }
+            }
+        });
+
+
+    }
+
+    private void cargarDatosInicialesTiquetes() {
+        cargarTiquetesEnTabla();
+        cargarClientesEnTablaTiquetes();
+        cargarAtraccionesEnTablaTiquetes();
+        cargarTiposTiquetesEnComboBox();
+    }
+
+    private void cargarTiquetesEnTabla() {
+        try {
+            List<Object[]> listaTiquetes = modelo.getTickets().obtenerTiquetes();
+            DefaultTableModel modeloTabla = (DefaultTableModel) view.getTiquetesView().getModeloTablaTiquetes();
+            modeloTabla.setRowCount(0);
+
+            
+            for (Object[] tiquete : listaTiquetes) {
+                modeloTabla.addRow(tiquete);
+            }
+        } catch (SQLException e) {
+            mostrarError("Error al cargar tiquetes", e);
+        }
+    }
+
+    private void cargarClientesEnTablaTiquetes() {
+        try {
+            List<Object[]> listaClientes = modelo.getClientes().listarClientes();
+            DefaultTableModel modeloTabla = view.getTiquetesView().getModeloTablaClientes();
+            modeloTabla.setRowCount(0);
+
+            for (Object[] cliente : listaClientes) {
+                modeloTabla.addRow(cliente);
+            }
+        } catch (SQLException e) {
+            mostrarError("Error al cargar clientes", e);
+        }
+    }
+
+    private void cargarAtraccionesEnTablaTiquetes() {
+        try {
+            List<Object[]> listaAtracciones = modelo.getAtracciones().listarAtracciones();
+            DefaultTableModel modeloTabla = view.getTiquetesView().getModeloTablaAtracciones();
+            modeloTabla.setRowCount(0);
+
+            for (Object[] atraccion : listaAtracciones) {
+                modeloTabla.addRow(atraccion);
+            }
+        } catch (SQLException e) {
+            mostrarError("Error al cargar atracciones", e);
+        }
+    }
+
+    private void manejarSeleccionFilaTiquetes() {
+        int filaSeleccionada = view.getTiquetesView().getTablaTiquetes().getSelectedRow();
+        if (filaSeleccionada >= 0) {
+            view.getTiquetesView().getTxtClienteID().setText(view.getTiquetesView().getTablaTiquetes().getValueAt(filaSeleccionada, 1).toString());
+            view.getTiquetesView().getTxtEstacionID().setText(view.getTiquetesView().getTablaTiquetes().getValueAt(filaSeleccionada, 2).toString());
+            view.getTiquetesView().getTxtFecha().setText(view.getTiquetesView().getTablaTiquetes().getValueAt(filaSeleccionada, 3).toString());
+
+            // Obtener el índice para el JComboBox
+            try {
+                int indiceComboBox = Integer.parseInt(view.getTiquetesView().getTablaTiquetes().getValueAt(filaSeleccionada, 4).toString());
+                if (indiceComboBox >= 0 && indiceComboBox < view.getTiquetesView().getCbTipoTiqueteID().getItemCount()) {
+                    view.getTiquetesView().getCbTipoTiqueteID().setSelectedIndex(indiceComboBox);
+                } else {
+                    view.getTiquetesView().getCbTipoTiqueteID().setSelectedIndex(-1); // Ninguna selección si el índice es inválido
+                }
+            } catch (NumberFormatException e) {
+                view.getTiquetesView().getCbTipoTiqueteID().setSelectedIndex(-1); // Ninguna selección si el valor no es un número
+            }
+        } else {
+            view.getTiquetesView().getTxtClienteID().setText("");
+            view.getTiquetesView().getTxtEstacionID().setText("");
+            view.getTiquetesView().getTxtFecha().setText(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+            view.getTiquetesView().getCbTipoTiqueteID().setSelectedIndex(0);   
+     }
+    }
+    
+
+    private void manejarSeleccionFilaClientesTiquetes() {
+        int filaSeleccionada = view.getTiquetesView().getTablaClientes().getSelectedRow();
+        if (filaSeleccionada >= 0) {
+            view.getTiquetesView().getTxtClienteID().setText(view.getTiquetesView().getTablaClientes().getValueAt(filaSeleccionada, 0).toString());
+        } else {
+            view.getTiquetesView().getTxtClienteID().setText("");
+        }
+    }
+
+
+
+    private void mostrarError(String mensaje, Exception e) {
+        JOptionPane.showMessageDialog(view, mensaje + ": " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+    }
+
+
+    private void cargarTiposTiquetesEnComboBox() {
+        try {
+            List<String> tipos = modelo.getTickets().obtenerTiposTiquetes();
+            JComboBox<String> cbTipos = view.getTiquetesView().getCbTipoTiqueteID();
+            cbTipos.removeAllItems();
+            for (String tiposTiquetes : tipos) {
+                cbTipos.addItem(tiposTiquetes);
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(view, "Error al cargar tipos de tiquetes: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void configurarVistaTiquetes(int rol) {
+        if (rol == 4) { // Operador
+            view.getTiquetesView().getBtnAgregar().setEnabled(false);
+            view.getTiquetesView().getBtnEditar().setEnabled(false);
+            view.getTiquetesView().getBtnEliminar().setEnabled(false);
+            view.getTiquetesView().getTxtClienteID().setEnabled(false);
+            view.getTiquetesView().getTxtEstacionID().setEnabled(false);
+            view.getTiquetesView().getTxtFecha().setEnabled(false);
+            view.getTiquetesView().getCbTipoTiqueteID().setEnabled(false);
+            view.getTiquetesView().getBtnIngreso().setEnabled(true);
+        } else if (rol == 2) { // Logística
+            view.getTiquetesView().getBtnAgregar().setEnabled(true);
+            view.getTiquetesView().getBtnEditar().setEnabled(true);
+            view.getTiquetesView().getBtnEliminar().setEnabled(true);
+            view.getTiquetesView().getTxtClienteID().setEnabled(true);
+            view.getTiquetesView().getTxtEstacionID().setEnabled(false);
+            view.getTiquetesView().getTxtEstacionID().setDisabledTextColor(Color.BLACK);
+            view.getTiquetesView().getTxtFecha().setEnabled(true);
+            view.getTiquetesView().getCbTipoTiqueteID().setEnabled(true);
+            view.getTiquetesView().getBtnIngreso().setEnabled(false);
+        }
+    }
     
 
 
@@ -571,8 +772,72 @@ public class Controller implements ActionListener {
           break;
 
           case "TicketsView":
-            view.setTiquetesView();
-            modelo.getAtracciones().verificarCambiosEstado(); // Mostrar notificaciones unicamente si hay cambios
+
+          String cedulaEmpleadoTiquetes = JOptionPane.showInputDialog("Ingrese su cédula:");
+          if (cedulaEmpleadoTiquetes != null) {
+              try {
+                  int rol = modelo.getEmpleados().obtenerRolPorCedula(cedulaEmpleadoTiquetes);
+                  if (rol == 2 || rol == 4) { // Operador (4) o Logística (2)
+                      configurarVistaTiquetes(rol);
+                      view.setTiquetesView();
+                      agregarListenersTiquetesView();
+                      cargarDatosInicialesTiquetes();
+      
+                      if (rol == 2) { // Logística
+                          List<Object[]> estaciones = modelo.getTickets().obtenerEstaciones();
+                          if (!estaciones.isEmpty()) {
+                              String[] opcionesEstaciones = estaciones.stream()
+                                  .map(estacion -> (String) estacion[1]) // Extraer el nombre de la estación
+                                  .toArray(String[]::new);
+      
+                              JComboBox<String> comboBoxEstaciones = new JComboBox<>(opcionesEstaciones);
+                              int resultado = JOptionPane.showConfirmDialog(
+                                  null,
+                                  comboBoxEstaciones,
+                                  "Seleccione una estación",
+                                  JOptionPane.OK_CANCEL_OPTION,
+                                  JOptionPane.QUESTION_MESSAGE
+                              );
+      
+                              if (resultado == JOptionPane.OK_OPTION) {
+                                  int indiceSeleccionado = comboBoxEstaciones.getSelectedIndex();
+                                  int estacionIdSeleccionada = (int) estaciones.get(indiceSeleccionado)[0]; // Obtener el ID de la estación seleccionada
+                                  
+                                  // Actualizar el campo `estado_id` con el ID seleccionado
+                                  // Aquí puedes realizar cualquier operación que desees con el ID seleccionado
+                                  JOptionPane.showMessageDialog(
+                                      null,
+                                      "Se ha seleccionado la estación con ID: " + estacionIdSeleccionada,
+                                      "Confirmación",
+                                      JOptionPane.INFORMATION_MESSAGE
+                                  );
+
+                                  view.getTiquetesView().getTxtEstacionID().setText(String.valueOf(estacionIdSeleccionada));
+
+                              }
+                          } else {
+                              JOptionPane.showMessageDialog(
+                                  null,
+                                  "No hay estaciones disponibles para seleccionar.",
+                                  "Información",
+                                  JOptionPane.INFORMATION_MESSAGE
+                              );
+                          }
+                      } else if (rol == 4) {
+                          modelo.getAtracciones().verificarCambiosEstado(); // Mostrar notificaciones solo si hay cambios
+                      }
+                  } else {
+                      JOptionPane.showMessageDialog(view, "Acceso denegado.", "Error", JOptionPane.ERROR_MESSAGE);
+                  }
+              } catch (SQLException ex) {
+                  JOptionPane.showMessageDialog(view, "Error al validar el rol: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+              }
+          }
+
+          break;
+
+          case "ReportesView":
+            view.setReportesView();
           break;
 
           case "AgregarClientesView":
@@ -586,7 +851,7 @@ public class Controller implements ActionListener {
                 String edadStr = view.getClientesView().getTxtEdad().getText().trim();
                 String nombreFamiliar = view.getClientesView().getTxtNombreFamiliar().getText().trim();
                 String telefonoFamiliar = view.getClientesView().getTxtTelefonoFamiliar().getText().trim();
-                int visitas = 1; // Usuario nuevo
+                int visitas = 0; // Usuario nuevo
 
                 // Validaciones de Formato
                 if (!nombre.matches("^[a-zA-ZáéíóúÁÉÍÓÚñÑ\\s]+$")) {
@@ -1145,7 +1410,214 @@ public class Controller implements ActionListener {
         }
           
           break;
+          case "AgregarTiquetesView":
+   
+            try {
+                // Obtener datos del formulario
+                String clienteIdText = view.getTiquetesView().getTxtClienteID().getText().trim();
+                String estacionIdText = view.getTiquetesView().getTxtEstacionID().getText().trim();
+                String fecha = view.getTiquetesView().getTxtFecha().getText().trim();
+                int tipoTiqueteSeleccionado = view.getTiquetesView().getCbTipoTiqueteID().getSelectedIndex() + 1;
+        
+                // Validaciones básicas
+                if (clienteIdText.isEmpty() || estacionIdText.isEmpty() || fecha.isEmpty()) {
+                    throw new IllegalArgumentException("Por favor, complete todos los campos obligatorios.");
+                }
+        
+                // Validar IDs numéricos
+                int clienteId, estacionId;
+                try {
+                    clienteId = Integer.parseInt(clienteIdText);
+                    estacionId = Integer.parseInt(estacionIdText);
+                    if (clienteId <= 0 || estacionId <= 0) {
+                        throw new IllegalArgumentException("Los IDs deben ser números positivos.");
+                    }
+                } catch (NumberFormatException ex) {
+                    throw new IllegalArgumentException("Por favor, ingrese valores numéricos válidos para los IDs.");
+                }
 
+                // Validar formato de la fecha
+                try {
+                    LocalDate.parse(fecha, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+                } catch (DateTimeParseException ex) {
+                    throw new IllegalArgumentException("El formato de la fecha es inválido. Use el formato yyyy-MM-dd.");
+                }
+
+        
+                // Agregar tiquete
+                modelo.getTickets().agregarTiquetes(clienteId, estacionId, fecha, tipoTiqueteSeleccionado);
+
+                // Incrementar visitas del cliente
+                modelo.getClientes().incrementarVisitas(clienteId);
+        
+                // Actualizar la tabla
+                cargarTiquetesEnTabla();
+                cargarClientesEnTabla();
+        
+                // Limpiar formulario
+                view.getTiquetesView().getTxtClienteID().setText("");
+                view.getTiquetesView().getTxtEstacionID().setText("");
+                view.getTiquetesView().getTxtFecha().setText("");
+                view.getTiquetesView().getCbTipoTiqueteID().setSelectedIndex(0);
+        
+                // Mensaje de éxito
+                JOptionPane.showMessageDialog(view, "Tiquete agregado exitosamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+            } catch (IllegalArgumentException ex) {
+                JOptionPane.showMessageDialog(view, ex.getMessage(), "Error de validación", JOptionPane.WARNING_MESSAGE);
+            } catch (SQLException ex) {
+                JOptionPane.showMessageDialog(view, "Error al agregar el tiquete: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
+
+          break;
+          case "EditarTiquetesView":
+
+            try {
+                // Verificar selección en la tabla
+                int filaSeleccionada = view.getTiquetesView().getTablaClientes().getSelectedRow();
+                if (filaSeleccionada < 0) {
+                    JOptionPane.showMessageDialog(view, "Por favor, seleccione un tiquete para editar.", "Advertencia", JOptionPane.WARNING_MESSAGE);
+                    break;
+                }
+        
+                // Obtener ID y datos actualizados
+                int id = Integer.parseInt(view.getTiquetesView().getModeloTablaClientes().getValueAt(filaSeleccionada, 0).toString());
+                String clienteIdText = view.getTiquetesView().getTxtClienteID().getText().trim();
+                String estacionIdText = view.getTiquetesView().getTxtEstacionID().getText().trim();
+                String fecha = view.getTiquetesView().getTxtFecha().getText().trim();
+                int tipoTiqueteSeleccionado = view.getTiquetesView().getCbTipoTiqueteID().getSelectedIndex() + 1;
+        
+                // Validaciones
+                if (clienteIdText.isEmpty() || estacionIdText.isEmpty() || fecha.isEmpty()) {
+                    throw new IllegalArgumentException("Por favor, complete todos los campos obligatorios.");
+                }
+        
+                // Validar IDs numéricos
+                int clienteId, estacionId;
+                try {
+                    clienteId = Integer.parseInt(clienteIdText);
+                    estacionId = Integer.parseInt(estacionIdText);
+                    if (clienteId <= 0 || estacionId <= 0) {
+                        throw new IllegalArgumentException("Los IDs deben ser números positivos.");
+                    }
+                } catch (NumberFormatException ex) {
+                    throw new IllegalArgumentException("Por favor, ingrese valores numéricos válidos para los IDs.");
+                }
+
+                // Validar formato de la fecha
+                try {
+                    LocalDate.parse(fecha, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+                } catch (DateTimeParseException ex) {
+                    throw new IllegalArgumentException("El formato de la fecha es inválido. Use el formato yyyy-MM-dd.");
+                }
+        
+                // Actualizar tiquete
+                modelo.getTickets().actualizarTiquete(id, clienteId, estacionId, fecha, tipoTiqueteSeleccionado);
+        
+                // Actualizar tabla
+                cargarTiquetesEnTabla();
+        
+                // Limpiar formulario
+                view.getTiquetesView().getTxtClienteID().setText("");
+                view.getTiquetesView().getTxtEstacionID().setText("");
+                view.getTiquetesView().getTxtFecha().setText("");
+                view.getTiquetesView().getCbTipoTiqueteID().setSelectedIndex(0);
+        
+                // Mensaje de éxito
+                JOptionPane.showMessageDialog(view, "Tiquete actualizado exitosamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+            } catch (IllegalArgumentException ex) {
+                JOptionPane.showMessageDialog(view, ex.getMessage(), "Error de validación", JOptionPane.WARNING_MESSAGE);
+            } catch (SQLException ex) {
+                JOptionPane.showMessageDialog(view, "Error al editar el tiquete: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
+          break;
+          case "EliminarTiquetesView":
+          
+            try {
+                // Verificar selección en la tabla
+                int filaSeleccionada = view.getTiquetesView().getTablaClientes().getSelectedRow();
+                if (filaSeleccionada < 0) {
+                    JOptionPane.showMessageDialog(view, "Por favor, seleccione un tiquete para eliminar.", "Advertencia", JOptionPane.WARNING_MESSAGE);
+                    break;
+                }
+        
+                // Confirmar eliminación
+                int confirmacion = JOptionPane.showConfirmDialog(
+                    view,
+                    "¿Está seguro de que desea eliminar este tiquete?",
+                    "Confirmación",
+                    JOptionPane.YES_NO_OPTION
+                );
+        
+                if (confirmacion == JOptionPane.YES_OPTION) {
+                    // Obtener ID del tiquete
+                    int id = Integer.parseInt(view.getTiquetesView().getModeloTablaClientes().getValueAt(filaSeleccionada, 0).toString());
+        
+                    // Eliminar tiquete
+                    modelo.getTickets().eliminarTiquete(id);
+        
+                    // Actualizar tabla
+                    cargarTiquetesEnTabla();
+        
+                    // Mensaje de éxito
+                    JOptionPane.showMessageDialog(view, "Tiquete eliminado exitosamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+                }
+            } catch (SQLException ex) {
+                JOptionPane.showMessageDialog(view, "Error al eliminar el tiquete: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
+          break;
+          case "IngresoTiquetesView":
+          try {
+            // Obtener cliente y atracción seleccionados
+            int filaTiquete = view.getTiquetesView().getTablaTiquetes().getSelectedRow();
+            int filaAtraccion = view.getTiquetesView().getTablaAtracciones().getSelectedRow();
+    
+            if (filaTiquete == -1 || filaAtraccion == -1) {
+                JOptionPane.showMessageDialog(view, "Debe seleccionar un tiquete y una atracción.", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+    
+            // Extraer datos de las tablas
+            int tiqueteId = (int) view.getTiquetesView().getTablaTiquetes().getValueAt(filaTiquete, 0); // Columna del ID del tiquete
+            int clienteId = (int) view.getTiquetesView().getTablaTiquetes().getValueAt(filaTiquete, 1); // Columna de cliente_id
+    
+            // Buscar al cliente por su ID en la base de datos
+            Clientes modeloClientes = modelo.getClientes();
+            String clienteData = (String) modeloClientes.buscarCliente(clienteId);
+    
+            if (clienteData == null || clienteData.equals("Cliente no encontrado.")) {
+                JOptionPane.showMessageDialog(view, "Cliente no encontrado en la base de datos.", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+    
+            // Parsear los datos del cliente
+            String[] lineasCliente = clienteData.split("\n");
+            if (lineasCliente.length < 6) {
+                JOptionPane.showMessageDialog(view, "Los datos del cliente están incompletos o tienen un formato incorrecto.", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+    
+            String clienteNombre = lineasCliente[1].replace("Nombre: ", "").trim();
+            double clienteEstatura = Double.parseDouble(lineasCliente[5].replace("Estatura: ", "").trim());
+    
+            // Extraer datos de la atracción seleccionada
+            int atraccionId = (int) view.getTiquetesView().getTablaAtracciones().getValueAt(filaAtraccion, 0);
+            String atraccionNombre = (String) view.getTiquetesView().getTablaAtracciones().getValueAt(filaAtraccion, 1);
+            double estaturaMinima = (double) view.getTiquetesView().getTablaAtracciones().getValueAt(filaAtraccion, 4);
+    
+            
+            // Validar la estatura
+            if (clienteEstatura >= estaturaMinima) {
+                JOptionPane.showMessageDialog(view, "El cliente " + clienteNombre + " puede ingresar a la atracción " + atraccionNombre + ".", "Acceso permitido", JOptionPane.INFORMATION_MESSAGE);
+    
+                // Registrar en la tabla intermedia
+                modelo.getTickets().instarDatosIngresoAtracciones(tiqueteId, atraccionId);
+            } else {
+                JOptionPane.showMessageDialog(view, "El cliente " + clienteNombre + " no cumple con la estatura mínima para la atracción " + atraccionNombre + ".", "Acceso denegado", JOptionPane.WARNING_MESSAGE);
+            }
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(view, "Error al validar el ingreso: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+        break;
 
           default:
 

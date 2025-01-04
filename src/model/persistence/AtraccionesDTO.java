@@ -9,7 +9,6 @@ public class AtraccionesDTO {
     private Double estaturaMinima;
     private String condicionesUso;
     private String estado; // Disponible, No Disponible, Mantenimiento
-    private int contadorTiquetes;
     private int empleadoId;
 
     // Getters y Setters
@@ -68,14 +67,6 @@ public class AtraccionesDTO {
 
     public void setEstado(String estado) {
         this.estado = estado;
-    }
-
-    public int getContadorTiquetes() {
-        return contadorTiquetes;
-    }
-
-    public void setContadorTiquetes(int contadorTiquetes) {
-        this.contadorTiquetes = contadorTiquetes;
     }
 
     public int getEmpleadoId() {

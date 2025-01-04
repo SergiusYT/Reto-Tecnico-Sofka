@@ -52,7 +52,6 @@ public class AtraccionesDAO {
                     atraccion.setEstaturaMinima(rs.getDouble("estatura_minima"));
                     atraccion.setCondicionesUso(rs.getString("condiciones_uso"));
                     atraccion.setEstado(rs.getString("estado"));
-                    atraccion.setContadorTiquetes(rs.getInt("contador_tiquetes"));
                     atraccion.setEmpleadoId(rs.getInt("empleado_id"));
                     return atraccion.toString();
                 }
@@ -77,7 +76,6 @@ public class AtraccionesDAO {
                     rs.getDouble("estatura_minima"),
                     rs.getString("condiciones_uso"),
                     rs.getString("estado"),
-                    rs.getInt("contador_tiquetes"),
                     rs.getInt("empleado_id")
                 };
                 atracciones.add(atraccion);
